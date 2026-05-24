@@ -1,0 +1,286 @@
+﻿<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>留言信息</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+    <style>
+        .unread-row {
+            background-color: #fff3cd !important;
+            font-weight: 500;
+        }
+        .unread-badge {
+            position: relative;
+            top: -2px;
+        }
+    </style>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">留言管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">留言信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="action-box">
+                    <div class="search-box">
+                        <form class="form-inline" role="form">
+                            <div class="form-group">
+                                <label class="sr-only" for="nickname">留言人</label>
+                                <input type="text" class="form-control" id="nickname" placeholder="请输入留言人"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入留言主题"
+                                       autocomplete="off">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="search">查询</button>
+                        </form>
+                    </div>
+                    <div class="operator-box">
+                        <a type="button" class="btn btn-primary" href="/feedback/add" th:if="${session.user.role == 2}">添加</a>
+                    </div>
+                </div>
+                <table id="dataTable" class="table table-hover table-bordered"></table>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var role = parseInt('[[${session.user.role}]]');
+
+    //初始化Datatable
+    var datatable = $('#dataTable').DataTable({
+        info: true,
+        scrollX: true,
+        scrollY: "400px",
+        scrollCollapse: true,
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,
+        searching: false,
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pagingType: "full_numbers",
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100],
+        ajax: {
+            "url": "/feedback/list",
+            "type": "POST",
+            "data": function (d) {
+                d.nickname = $('#nickname').val();
+                d.title = $('#title').val();
+            }
+        },
+        fixedColumns: {
+            leftColumns: -1,
+            rightColumns: 1
+        },
+        columns: [
+            {title: "留言人", data: 'nickname', width: '100px'},
+            {
+                title: "留言类型",
+                data: 'categoryId',
+                width: '120px',
+                render: function (data, type, row, meta) {
+                    if (data == null) {
+                        return '<span class="badge badge-pill badge-primary">全局留言</span>';
+                    }
+                    return '<span class="badge badge-pill badge-info">项目留言</span>';
+                }
+            },
+            {
+                title: "项目名称",
+                data: 'categoryName',
+                width: '150px',
+                "defaultContent": '<span class="text-muted">--</span>'
+            },
+            {title: "主题", data: 'title', width: '200px'},
+            {
+                title: "状态",
+                data: 'status',
+                width: '100px',
+                render: function (data, type, row, meta) {
+                    if (data == 0) {
+                        return '<span class="badge badge-pill badge-info">待回复</span>';
+                    }
+                    // 用户端：显示是否已读
+                    if (role === 2 && row.isRead == 0) {
+                        return '<span class="badge badge-pill badge-success">已回复</span> <span class="badge badge-danger unread-badge">未读</span>';
+                    }
+                    return '<span class="badge badge-pill badge-success">已回复</span>';
+                }
+            },
+            {title: "回复", data: 'reply', width: '350px', "defaultContent": '--'},
+            {title: "时间", data: 'createTime', width: '150px'},
+            {
+                title: "操作",
+                data: null,
+                width: '150px',
+                render: function (data, type, row, meta) {
+                    var btnHtml = '';
+                    btnHtml += '<div class="btn-group" role="group" aria-label="Basic example">';
+
+                    // 用户端：待回复可编辑
+                    if(role === 2 && row.status == 0){
+                        btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/feedback/edit?id=' + row.id + '"><i class="fa fa-edit"> 编辑</i></a>';
+                    }
+
+                    // 用户端：查看详情（会标记为已读）
+                    if(role === 2 && row.status == 1) {
+                        btnHtml += ' <button type="button" class="btn btn-info btn-sm" onclick="viewDetail(' + row.id + ')"><i class="fa fa-eye"> 查看</i></button>';
+                    }
+
+                    // 管理员和高级员工：回复
+                    if(role === 0 || role === 3){
+                        btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/feedback/reply?id=' + row.id + '"><i class="fa fa-comments-o"> 回复</i></a>';
+                    }
+
+                    btnHtml += ' <button type="button" class="btn btn-danger btn-sm" onclick="del(' + row.id + ')"><i class="fa fa-trash-o"> 删除</i></button>';
+                    btnHtml += '</div>';
+                    return btnHtml;
+                }
+            }
+
+        ],
+        rowCallback: function(row, data) {
+            // 用户端：未读回复的行高亮显示
+            if (role === 2 && data.status == 1 && data.isRead == 0) {
+                $(row).addClass('unread-row');
+            }
+        },
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    //添加查询事件
+    $("#search").on("click", function () {
+        reloadData();
+    });
+
+    // 查看详情（用户端）
+    function viewDetail(id) {
+        $.ajax({
+            type: "GET",
+            url: "/feedback/" + id,
+            dataType: "json",
+            success: function (result) {
+                if (result.code == 200) {
+                    var feedback = result.data;
+                    var content = '<div class="p-3">';
+                    content += '<h5>' + feedback.title + '</h5>';
+                    content += '<hr>';
+                    content += '<p><strong>留言内容：</strong></p>';
+                    content += '<p>' + feedback.content + '</p>';
+                    content += '<hr>';
+                    content += '<p><strong>回复内容：</strong></p>';
+                    content += '<p class="text-success">' + (feedback.reply || '暂无回复') + '</p>';
+                    content += '</div>';
+
+                    swal({
+                        title: "留言详情",
+                        content: {
+                            element: "div",
+                            attributes: {
+                                innerHTML: content
+                            }
+                        },
+                        button: "关闭"
+                    }).then(() => {
+                        // 关闭后刷新列表
+                        reloadData();
+                    });
+                } else {
+                    toastr.error(result.msg);
+                }
+            }
+        });
+    }
+
+    // 删除
+    function del(id) {
+        swal({
+            title: "确认删除此记录吗?",
+            text: "一旦删除，记录无法恢复！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                $.ajax({
+                    type: "DELETE",
+                    async: false,
+                    url: "/feedback/" + id,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            reloadData();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    // 刷新数据
+    function reloadData() {
+        $('#dataTable').DataTable().ajax.reload();
+        // 如果是用户端，刷新小红点
+        if (role === 2 && typeof updateUnreadBadge === 'function') {
+            updateUnreadBadge();
+        }
+    }
+
+</script>
+</body>
+</html>

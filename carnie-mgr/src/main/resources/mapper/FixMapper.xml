@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoniucr.mapper.FixMapper">
+    <resultMap id="BaseResultMap" type="com.xiaoniucr.entity.Fix">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="employee_id" jdbcType="INTEGER" property="employeeId"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        , employee_id, title, content, status, remark, create_time, update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_fix
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_fix
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.xiaoniucr.entity.Fix">
+        insert into t_fix (id, employee_id, title,
+                           content, status, remark,
+                           create_time, update_time)
+        values (#{id,jdbcType=INTEGER}, #{employeeId,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR},
+                #{content,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{remark,jdbcType=VARCHAR},
+                #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.xiaoniucr.entity.Fix">
+        insert into t_fix
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="employeeId != null">
+                employee_id,
+            </if>
+            <if test="title != null">
+                title,
+            </if>
+            <if test="content != null">
+                content,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="employeeId != null">
+                #{employeeId,jdbcType=INTEGER},
+            </if>
+            <if test="title != null">
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.xiaoniucr.entity.Fix">
+        update t_fix
+        <set>
+            <if test="employeeId != null">
+                employee_id = #{employeeId,jdbcType=INTEGER},
+            </if>
+            <if test="title != null">
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null">
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.xiaoniucr.entity.Fix">
+        update t_fix
+        set employee_id = #{employeeId,jdbcType=INTEGER},
+            title       = #{title,jdbcType=VARCHAR},
+            content     = #{content,jdbcType=VARCHAR},
+            status      = #{status,jdbcType=INTEGER},
+            remark      = #{remark,jdbcType=VARCHAR},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="findList" resultType="com.xiaoniucr.entity.Fix">
+        select a.*,
+        b.nickname
+        from t_fix a
+        inner join t_employee b on a.employee_id = b.id
+        <where>
+            <if test="employeeId != null and employeeId != ''">
+                and a.employee_id = #{employeeId}
+            </if>
+            <if test="status != null and status != ''">
+                and a.status = #{status}
+            </if>
+            <if test="title != null and title != ''">
+                and a.title like concat('%',#{title},'%')
+            </if>
+            <if test="nickname != null and nickname !=''">
+                and b.nickname like concat('%',#{nickname},'%')
+            </if>
+        </where>
+        order by a.create_time desc
+        limit #{start},#{limit};
+    </select>
+
+    <select id="findTotal" resultType="java.lang.Integer">
+        select count(a.id)
+        from t_fix a
+        inner join t_employee b on a.employee_id = b.id
+        <where>
+            <if test="employeeId != null and employeeId != ''">
+                and a.employee_id = #{employeeId}
+            </if>
+            <if test="status != null and status != ''">
+                and a.status = #{status}
+            </if>
+            <if test="title != null and title != ''">
+                and a.title like concat('%',#{title},'%')
+            </if>
+            <if test="nickname != null and nickname !=''">
+                and b.nickname like concat('%',#{nickname},'%')
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,354 @@
+<div th:fragment="left">
+
+    <!-- begin::page loader-->
+    <div class="page-loader">
+        <div class="spinner-border"></div>
+        <span>Loading ...</span>
+    </div>
+    <!-- end::page loader -->
+
+    <!-- begin::side menu -->
+    <div class="side-menu">
+        <div class='side-menu-body'>
+            <!-- 管理员菜单 role=0 精简版 -->
+            <ul th:if="${session.user.role == 0}">
+                <li class="side-menu-divider">导航菜单</li>
+                <li><a class="active" href="/index.html"><i class="icon ti-home"></i> <span>首页</span></a></li>
+
+                <li><a href="#"><i class="icon fa fa-users"></i> <span>员工管理</span> </a>
+                    <ul>
+                        <li><a href="/employee/list">员工信息 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-ticket"></i> <span>门票管理</span> </a>
+                    <ul>
+                        <li><a href="/ticket/list">门票信息 </a></li>
+                        <li><a href="/order/list">门票订单 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-cog"></i> <span>系统设置</span> </a>
+                    <ul>
+                        <li><a href="/admin/profile">个人信息 </a></li>
+                        <li><a href="/password">修改密码 </a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+            <!-- 普通员工菜单 role=1 -->
+            <ul th:if="${session.user.role == 1}">
+                <li class="side-menu-divider">导航菜单</li>
+                <li><a class="active" href="/index.html"><i class="icon ti-home"></i> <span>首页</span></a></li>
+                <li><a href="#"><i class="icon fa fa-sun-o"></i> <span>游乐项目</span> </a>
+                    <ul>
+                        <li><a href="/category/list">游乐项目 </a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="icon fa fa-ticket"></i> <span>门票管理</span> </a>
+                    <ul>
+                        <li><a href="/ticket/list">门票信息 </a></li>
+                        <li><a href="/order/list">门票订单 </a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="icon fa fa-wrench"></i> <span>报修管理</span> </a>
+                    <ul>
+                        <li><a href="/repair/employee/list">我的报修 </a></li>
+                    </ul>
+                </li>
+                <!-- 留言管理 - 员工端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-comments-o"></i>
+                    <span>留言管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="feedbackBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/feedback/list">留言信息 </a></li>
+                    </ul>
+                </li>
+                <!-- 公告管理 - 员工端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-bell-o"></i>
+                    <span>公告管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="noticeBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/notice/list">公告信息 </a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="icon fa fa-cog"></i> <span>系统设置</span> </a>
+                    <ul>
+                        <li><a href="/employee/profile">个人信息 </a></li>
+                        <li><a href="/password">修改密码 </a></li>
+                    </ul>
+                </li>
+            </ul>
+
+
+            <!-- 普通用户菜单 role=2 -->
+            <ul th:if="${session.user.role == 2}">
+                <li class="side-menu-divider">导航菜单</li>
+                <li><a class="active" href="/index.html"><i class="icon ti-home"></i> <span>首页</span></a></li>
+                <li><a href="#"><i class="icon fa fa-sun-o"></i> <span>游乐项目</span> </a>
+                    <ul>
+                        <li><a href="/category/view">游乐项目 </a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="icon fa fa-ticket"></i> <span>门票管理</span> </a>
+                    <ul>
+                        <li><a href="/ticket/list">门票信息 </a></li>
+                        <li><a href="/order/list">门票订单 </a></li>
+                    </ul>
+                </li>
+                <!-- 留言管理 - 用户端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-comments-o"></i>
+                    <span>留言管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="feedbackBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/feedback/list">留言信息 </a></li>
+                        <li><a href="/feedback/add">留言添加 </a></li>
+                    </ul>
+                </li>
+                <!-- 公告管理 - 用户端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-bell-o"></i>
+                    <span>公告管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="noticeBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/notice/list">公告信息 </a></li>
+                    </ul>
+                </li>
+                <li><a href="#"><i class="icon fa fa-cog"></i> <span>系统设置</span> </a>
+                    <ul>
+                        <li><a href="/user/profile">个人信息 </a></li>
+                        <li><a href="/password">修改密码 </a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+            <!-- 高级员工菜单 role=3 -->
+            <ul th:if="${session.user.role == 3}">
+                <li class="side-menu-divider">导航菜单</li>
+                <li><a class="active" href="/index.html"><i class="icon ti-home"></i> <span>首页</span></a></li>
+
+                <li><a href="#"><i class="icon fa fa-user-o"></i> <span>用户管理</span> </a>
+                    <ul>
+                        <li><a href="/user/list">用户信息 </a></li>
+                        <li><a href="/user/add">用户添加 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-sun-o"></i> <span>游乐项目</span> </a>
+                    <ul>
+                        <li><a href="/category/list">游乐项目 </a></li>
+                        <li><a href="/category/add">项目添加 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-ticket"></i> <span>门票管理</span> </a>
+                    <ul>
+                        <li><a href="/ticket/list">门票信息 </a></li>
+                        <li><a href="/ticket/add">门票添加 </a></li>
+                        <li><a href="/order/list">门票订单 </a></li>
+                    </ul>
+                </li>
+
+                <!-- 报修监控 - 高级员工端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-wrench"></i>
+                    <span>报修监控</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="seniorRepairBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/repair/senior/list">报修管理 </a></li>
+                    </ul>
+                </li>
+
+                <!-- 留言管理 - 高级员工端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-comments-o"></i>
+                    <span>留言管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="feedbackBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/feedback/list">留言信息 </a></li>
+                    </ul>
+                </li>
+
+                <!-- 公告管理 - 高级员工端(可发布,无小红点) -->
+                <li><a href="#"><i class="icon fa fa-bell-o"></i> <span>公告管理</span> </a>
+                    <ul>
+                        <li><a href="/notice/list">公告信息 </a></li>
+                        <li><a href="/notice/add">公告发布 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-cog"></i> <span>系统设置</span> </a>
+                    <ul>
+                        <li><a href="/employee/profile">个人信息 </a></li>
+                        <li><a href="/password">修改密码 </a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+            <!-- 维修员菜单 role=4 -->
+            <ul th:if="${session.user.role == 4}">
+                <li class="side-menu-divider">导航菜单</li>
+                <li><a class="active" href="/index.html"><i class="icon ti-home"></i> <span>首页</span></a></li>
+
+                <li><a href="#"><i class="icon fa fa-sun-o"></i> <span>游乐项目</span> </a>
+                    <ul>
+                        <li><a href="/category/list">游乐项目 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-ticket"></i> <span>门票管理</span> </a>
+                    <ul>
+                        <li><a href="/ticket/list">门票信息 </a></li>
+                        <li><a href="/order/list">门票订单 </a></li>
+                    </ul>
+                </li>
+
+                <!-- 报修管理 - 维修员端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-wrench"></i>
+                    <span>报修管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="repairBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/repair/repairlist">报修处理 </a></li>
+                    </ul>
+                </li>
+
+                <!-- 公告管理 - 维修员端带小红点 -->
+                <li><a href="#"><i class="icon fa fa-bell-o"></i>
+                    <span>公告管理</span>
+                    <span class="badge badge-danger badge-pill ml-2" id="noticeBadge" style="display:none; position:relative; top:-2px;"></span>
+                </a>
+                    <ul>
+                        <li><a href="/notice/list">公告信息 </a></li>
+                    </ul>
+                </li>
+
+                <li><a href="#"><i class="icon fa fa-cog"></i> <span>系统设置</span> </a>
+                    <ul>
+                        <li><a href="/employee/profile">个人信息 </a></li>
+                        <li><a href="/password">修改密码 </a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+            <!-- 小红点实时更新脚本 - 员工端和用户端 -->
+            <script th:if="${session.user.role == 1 || session.user.role == 2 || session.user.role == 3 || session.user.role == 4}">
+                var userRole = parseInt('[[${session.user.role}]]');
+
+                // 更新留言未读数量
+                function updateFeedbackBadge() {
+                    // role=1 员工端和 role=3 高级员工端需要留言提醒
+                    if(userRole === 1 || userRole === 3) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/feedback/unreadCount",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.code == 200 && result.data > 0) {
+                                    $('#feedbackBadge').text(result.data).show();
+                                } else {
+                                    $('#feedbackBadge').hide();
+                                }
+                            }
+                        });
+                    }
+                    // role=2 用户端的留言提醒已在原代码中实现
+                    else if(userRole === 2) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/feedback/unreadCount",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.code == 200 && result.data > 0) {
+                                    $('#feedbackBadge').text(result.data).show();
+                                } else {
+                                    $('#feedbackBadge').hide();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 更新公告未读数量
+                function updateNoticeBadge() {
+                    // role=1 员工端和 role=2 用户端需要公告提醒
+                    if(userRole === 1 || userRole === 2 || userRole === 4) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/notice/unreadCount",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.code == 200 && result.data > 0) {
+                                    $('#noticeBadge').text(result.data).show();
+                                } else {
+                                    $('#noticeBadge').hide();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 更新报修未读数量 - 仅维修员
+                function updateRepairBadge() {
+                    if(userRole === 4) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/repair/unreadCount",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.code == 200 && result.data > 0) {
+                                    $('#repairBadge').text(result.data).show();
+                                } else {
+                                    $('#repairBadge').hide();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 更新高级员工报修小红点
+                function updateSeniorRepairBadge() {
+                    if(userRole === 3) {
+                        $.ajax({
+                            type: "GET",
+                            url: "/repair/seniorUnreadCount",
+                            dataType: "json",
+                            success: function (result) {
+                                if (result.code == 200 && result.data > 0) {
+                                    $('#seniorRepairBadge').text(result.data).show();
+                                } else {
+                                    $('#seniorRepairBadge').hide();
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // 页面加载时执行
+                $(document).ready(function() {
+                    updateFeedbackBadge();
+                    updateNoticeBadge();
+                    updateRepairBadge();
+                    updateSeniorRepairBadge();
+                    // 每30秒刷新一次未读数量
+                    setInterval(function() {
+                        updateFeedbackBadge();
+                        updateNoticeBadge();
+                        updateRepairBadge();
+                        updateSeniorRepairBadge();
+                    }, 30000);
+                });
+            </script>
+
+        </div>
+    </div>
+    <!-- end::side menu -->
+
+</div>

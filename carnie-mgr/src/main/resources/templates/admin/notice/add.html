@@ -1,0 +1,174 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>公告添加</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">公告管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">公告发布</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <!-- 公告类型选择 -->
+                            <div class="form-group">
+                                <label>公告类型</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="noticeType" id="typeGlobal" value="global" checked>
+                                        <label class="form-check-label" for="typeGlobal">
+                                            对游乐园整体公告
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="noticeType" id="typeProject" value="project">
+                                        <label class="form-check-label" for="typeProject">
+                                            对具体项目公告
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 项目/维修员选择 (默认隐藏) -->
+                            <div class="form-group" id="projectSelect" style="display:none;">
+                                <label for="categoryId">选择项目或人员</label>
+                                <select class="form-control" id="categoryId">
+                                    <option value="">请选择项目或人员</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入公告主题" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="content">内容</label>
+                                <div id="content">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    const E = window.wangEditor
+    const editor = new E('#content');
+    // 配置菜单栏，设置不需要的菜单
+    editor.config.excludeMenus = ['emoticon', 'image', 'video']
+    editor.create()
+
+    // 加载所有项目和维修员
+    $(document).ready(function() {
+        $.ajax({
+            type: "GET",
+            url: "/category/all",
+            dataType: "json",
+            success: function (result) {
+                if (result.code == 200 && result.data) {
+                    var options = '<option value="">请选择项目或人员</option>';
+                    // 添加项目选项
+                    result.data.forEach(function(item) {
+                        options += '<option value="' + item.id + '">' + item.categoryName + '</option>';
+                    });
+                    // 添加维修员选项（使用特殊值 -1 表示维修员）
+                    options += '<option value="-1">维修员</option>';
+                    $('#categoryId').html(options);
+                }
+            }
+        });
+    });
+
+    // 公告类型切换
+    $('input[name="noticeType"]').change(function() {
+        if($(this).val() === 'project') {
+            $('#projectSelect').show();
+        } else {
+            $('#projectSelect').hide();
+            $('#categoryId').val('');
+        }
+    });
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var noticeType = $('input[name="noticeType"]:checked').val();
+        var categoryId = $('#categoryId').val();
+        var title = $('#title').val();
+        var content = editor.txt.html();
+
+        if (title == "" || title == null) {
+            toastr.warning('请输入公告主题');
+            $("#title").focus();
+            return;
+        }
+        if (content == "" || content == null) {
+            toastr.warning('请输入公告内容');
+            return;
+        }
+        if (noticeType === 'project' && (categoryId == "" || categoryId == null)) {
+            toastr.warning('请选择要公告的项目或人员');
+            $("#categoryId").focus();
+            return;
+        }
+
+        var data = {};
+        data.title = title;
+        data.content = content;
+        // 如果是项目公告，添加categoryId
+        if (noticeType === 'project') {
+            data.categoryId = parseInt(categoryId);
+        }
+        $.ajax({
+            type: "POST",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/notice",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/notice/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+</script>
+</body>
+</html>

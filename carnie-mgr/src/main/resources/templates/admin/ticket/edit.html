@@ -1,0 +1,175 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>门票编辑</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">门票管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">门票编辑</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="categoryId">项目名称</label>
+                                <select class="form-control" id="categoryId">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="ticketDate">门票日期</label>
+                                <input type="text" class="form-control datePick" id="ticketDate" name="ticketDate" placeholder="请选择门票日期" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="type">门票类型</label>
+                                <select class="form-control" id="type">
+                                    <option value="">请选择门票类型</option>
+                                    <option value="0">成人</option>
+                                    <option value="1">儿童</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="totalNum">门票价格</label>
+                                <input type="text" class="form-control" id="price" placeholder="请输入门票价格" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="totalNum">门票总数</label>
+                                <input type="text" class="form-control" id="totalNum" placeholder="请输入门票总数" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var id = getQueryVariable('id');
+    getCategory();
+    $('.datePick').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            "format": "YYYY-MM-DD",
+            applyLabel: '确定',
+            cancelLabel: '取消',
+            fromLabel: '起始时间',
+            toLabel: '结束时间',
+            daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+            monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月','九月', '十月', '十一月', '十二月'],
+            firstDay: 6
+        }
+    });
+
+    //字段回填
+    $.get("/ticket/"+id, function (result) {
+        var obj = result.data;
+        getCategory(obj.categoryId)
+        $('#ticketDate').val(obj.ticketDate);
+        $('#type').val(obj.type);
+        $('#price').val(obj.price);
+        $('#totalNum').val(obj.totalNum);
+        $('#save').attr('data-id', id);
+    });
+
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var id = $(this).attr('data-id');
+        var categoryId = $('#categoryId').val();
+        var ticketDate = $('#ticketDate').val();
+        var type = $('#type').val();
+        var totalNum = $('#totalNum').val();
+        if (categoryId == "" || categoryId == null) {
+            toastr.warning('请选择项目名称');
+            $("#categoryId").focus();
+            return;
+        }
+        if (ticketDate == "" || ticketDate == null) {
+            toastr.warning('请选择门票日期');
+            $("#ticketDate").focus();
+            return;
+        }
+        if (type == "" || type == null) {
+            toastr.warning('请选择门票种类');
+            $("#type").focus();
+            return;
+        }
+        if (totalNum == "" || totalNum == null) {
+            toastr.warning('请输入门票总数');
+            $("#totalNum").focus();
+            return;
+        }
+        var data = {};
+        data.id = id;
+        data.categoryId = categoryId;
+        data.ticketDate = ticketDate;
+        data.type = type;
+        data.totalNum = totalNum;
+        $.ajax({
+            type: "PUT",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/ticket",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/ticket/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+
+    // 获取所有项目
+    function getCategory(categoryId){
+        $.get("/category/all", function (result) {
+            $("#categoryId").empty();
+            $("#categoryId").append("<option value=''>--请选择项目名称--</option>");//新增
+            $.each(result.data, function (index, item) {
+                if(item.id == categoryId){
+                    $("#categoryId").append("<option value='" + item.id + "' selected>" + item.categoryName + "</option>");
+                }else{
+                    $("#categoryId").append("<option value='" + item.id + "'>" + item.categoryName + "</option>");
+                }
+            });
+        });
+    }
+
+
+</script>
+</body>
+</html>

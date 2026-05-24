@@ -1,0 +1,324 @@
+﻿<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>报修信息</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">报修管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">报修信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="action-box">
+                    <div class="search-box">
+                        <form class="form-inline" role="form">
+                            <div class="form-group" th:if="${session.user.role == 0}">
+                                <label class="sr-only" for="nickname">报修人</label>
+                                <input type="text" class="form-control" id="nickname" placeholder="请输入报修人"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="title">报修主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入报修主题"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="status">报修状态</label>
+                                <select class="form-control" id="status">
+                                    <option value="">--请选择报修状态--</option>
+                                    <option value="0">待处理</option>
+                                    <option value="1">进行中</option>
+                                    <option value="2">已完成</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="search">查询</button>
+                        </form>
+                    </div>
+                    <div class="operator-box">
+                        <a type="button" class="btn btn-primary" href="/fix/add"
+                           th:if="${session.user.role == 1}">添加</a>
+                    </div>
+                </div>
+                <table id="dataTable" class="table table-hover table-bordered"></table>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<!-- 维修完成备注 -->
+<div class="modal fade" id="fixModal" tabindex="-1" role="dialog"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">维修完成</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="remark" class="col-form-label">备注</label>
+                        <textarea class="form-control" id="remark" placeholder="请输入维修备注"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" data-id="" id="save" >保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var role = '[[${session.user.role}]]';
+    //初始化Datatable
+    var datatable = $('#dataTable').DataTable({
+        info: true,             // 控制是否显示表格左下角的信息
+        scrollX: true,
+        scrollY: "400px",       // 设置垂直滚动
+        scrollCollapse: true,   // 当显示更少的记录时，是否允许表格减少高度
+        // autoWidth: true,        // 控制Datatables是否自适应宽度
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,        // 是否允许Datatables开启排序
+        searching: false,       // 是否允许Datatables开启本地搜索
+        serverSide: true,       // 是否开启服务器模式
+        processing: true,       // 是否显示处理状态(排序的时候，数据很多耗费时间长的话，也会显示这个)
+        paging: true,           // 是否开启本地分页
+        pagingType: "full_numbers", // 分页按钮显示选项
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100], // 定义在每页显示记录数的select中显示的选项
+        ajax: {
+            "url": "/fix/list",
+            "type": "POST",
+            "data": function (d) {
+                d.nickname = $('#nickname').val();
+                d.title = $('#title').val();
+                d.status = $('#status').val();
+            }
+        },
+        fixedColumns: {         // 固定列
+            leftColumns: -1,
+            rightColumns: 1     // 固定最后一列
+        },
+        columns: [
+            {title: "报修人", data: 'nickname', width: '100px'},
+            {title: "报修主题", data: 'title', width: '200px'},
+            {title: "报修内容", data: 'content', width: '200px'},
+            {
+                title: "报修状态",
+                data: 'status',
+                width: '80px',
+                render: function (data, type, row, meta) {
+                    if (data == 0) {
+                        return '<span class="badge badge-pill badge-info">待处理</span>';
+                    } else if (data == 1) {
+                        return '<span class="badge badge-pill badge-primary">进行中</span>';
+                    } else {
+                        return '<span class="badge badge-pill badge-success">已完成</span>';
+                    }
+                }
+            },
+            {title: "处理备注", data: 'remark', width: '350px', "defaultContent": '--'},
+            {title: "时间", data: 'createTime', width: '150px'},
+            {
+                title: "操作",
+                data: null,
+                width: '120px',
+                render: function (data, type, row, meta) {
+                    var btnHtml = '';
+                    btnHtml += '<div class="btn-group" role="group" aria-label="Basic example">';
+                    if (role == 1 && row.status == 0) {
+                        btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/fix/edit?id=' + row.id + '"><i class="fa fa-edit"> 编辑</i></a>';
+                    }
+                    if (role == 0 && row.status == 0) {
+                        btnHtml += ' <button type="button" class="btn btn-primary btn-sm" onclick="handle(' + row.id + ')"><i class="fa fa-wrench"> 处理</i></button>';
+                    }
+                    if (role == 0 && (row.status == 1 || row.status == 2)) {
+                        btnHtml += ' <button type="button" class="btn btn-primary btn-sm" onclick="finish(' + row.id + ')"><i class="fa fa-check-square-o"> 完成</i></button>';
+                    }
+                    btnHtml += ' <button type="button" class="btn btn-danger btn-sm" onclick="del(' + row.id + ')"><i class="fa fa-trash-o"> 删除</i></button>';
+                    btnHtml += '</div>';
+                    return btnHtml;
+                }
+            }
+
+        ],
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    //添加查询事件
+    $("#search").on("click", function () {
+        reloadData();
+    });
+
+    // 处理
+    function handle(id) {
+
+        swal({
+            title: "确认处理吗?",
+            text: "处理过程可能需要一段时间！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                var data = {};
+                data.id = id;
+                data.status = 1;
+                $.ajax({
+                    type: "PUT",
+                    async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+                    url: "/fix",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        //后台返回的需要显示的信息列表
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            reloadData();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    // 维修完成
+    function finish(id) {
+        //字段回填
+        $.get("/fix/"+id, function (result) {
+            var obj = result.data;
+            $('#remark').val(obj.remark);
+            $('#save').attr('data-id', id);
+            $('#fixModal').modal('show')
+        });
+    }
+
+    // 保存维修备注
+    $("#save").click(function () {
+        var id = $(this).attr('data-id');
+        var remark = $('#remark').val();
+        if (remark == "" || remark == null) {
+            toastr.warning('请输入维修备注');
+            $("#remark").focus();
+            return;
+        }
+        var data = {};
+        data.id = id;
+        data.remark = remark;
+        data.status = 2;
+        $.ajax({
+            type: "PUT",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/fix",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    reloadData();
+                    $('#fixModal').modal('hide');
+                    toastr.success(data.msg);
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+
+    // 删除
+    function del(id) {
+
+        swal({
+            title: "确认删除此记录吗?",
+            text: "一旦删除，记录无法恢复！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                $.ajax({
+                    type: "DELETE",
+                    async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+                    url: "/fix/" + id,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        //后台返回的需要显示的信息列表
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            reloadData();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    // 刷新数据
+    function reloadData() {
+        //重新加载表格数据
+        $('#dataTable').DataTable().ajax.reload();
+    }
+
+
+</script>
+</body>
+</html>

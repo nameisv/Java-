@@ -1,0 +1,289 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>门票信息</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">门票管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">门票信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="action-box">
+                    <div class="search-box">
+                        <form class="form-inline" role="form">
+                            <div class="form-group" th:if="${session.user.role != 1}">
+                                <label class="sr-only" for="categoryId">项目</label>
+                                <select class="form-control" id="categoryId">
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="ticketDate">日期</label>
+                                <input type="text" class="form-control datePick" id="ticketDate" placeholder="请选择门票日期"
+                                       autocomplete="off">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="search">查询</button>
+                        </form>
+                    </div>
+                    <div class="operator-box">
+                        <a type="button" class="btn btn-primary" href="/ticket/add" th:if="${session.user.role == 0 || session.user.role == 3}">添加</a>
+                    </div>
+                </div>
+                <table id="dataTable" class="table table-hover table-bordered"></table>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<!-- 购买门票 -->
+<div class="modal fade" id="buyModal" tabindex="-1" role="dialog"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">购买门票</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="ticketNum" class="col-form-label">购买数量</label>
+                        <input type="text" class="form-control" id="ticketNum" placeholder="请输入门票数量">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消
+                </button>
+                <button type="button" class="btn btn-primary" data-ticket-id="" id="pay" >购买</button>
+            </div>
+        </div>
+    </div>
+</div>
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var role = '[[${session.user.role}]]';
+    getCategory();
+    //初始化Datatable
+    var datatable = $('#dataTable').dataTable({
+        info: true,             // 控制是否显示表格左下角的信息
+        scrollY: "400px",       // 设置垂直滚动
+        scrollCollapse: true,   // 当显示更少的记录时，是否允许表格减少高度
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,        // 是否允许Datatables开启排序
+        searching: false,       // 是否允许Datatables开启本地搜索
+        serverSide: true,       // 是否开启服务器模式
+        processing: true,       // 是否显示处理状态(排序的时候，数据很多耗费时间长的话，也会显示这个)
+        paging: true,           // 是否开启本地分页
+        pagingType: "full_numbers", // 分页按钮显示选项
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100], // 定义在每页显示记录数的select中显示的选项
+        ajax: {
+            "url": "/ticket/list",
+            "type": "POST",
+            "data": function (d) {
+                if(role != 1){
+                    d.categoryId = $('#categoryId').val();
+                }
+                d.ticketDate = $('#ticketDate').val();
+            }
+        },
+        columns: [
+            {title: "项目", data: 'categoryName', width: '100px'},
+            {title: "日期", data: 'ticketDate', width: '100px'},
+            {
+                title: "类型",
+                data: 'type',
+                width: '50px',
+                render: function (data, type, row, meta) {
+                    if (data == 0) {
+                        return '<span class="badge badge-pill badge-primary">成人</span>';
+                    }
+                    return '<span class="badge badge-pill badge-info">儿童</span>';
+                }
+            },
+            {title: "价格", data: 'price', width: '100px'},
+            {title: "门票总数", data: 'totalNum', width: '100px'},
+            {title: "门票剩余", data: 'restNum', width: '100px'},
+            {title: "时间", data: 'createTime', width: '150px'},
+            {
+                title: "操作",
+                data: null,
+                visible: role != 1 ? true : false,
+                width: role == 2 ? '60px' : '120px',
+                render: function (data, type, row, meta) {
+                    var btnHtml = '';
+                    btnHtml += '<div class="btn-group" role="group" aria-label="Basic example">';
+                    if(role != 2){
+                        btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/ticket/edit?id=' + row.id + '"><i class="fa fa-edit"> 编辑</i></a>';
+                        btnHtml += ' <button type="button" class="btn btn-danger btn-sm" onclick="del(' + row.id + ')"><i class="fa fa-trash-o"> 删除</i></button>';
+                    }
+                    if(role == 2){
+                        btnHtml += ' <button type="button" class="btn btn-primary btn-sm" onclick="appoint(' + row.id + ')"><i class="fa fa-check-circle-o"> 预约</i></button>';
+                    }
+                    btnHtml += '</div>';
+                    return btnHtml;
+                }
+            }
+
+        ],
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    //添加查询事件
+    $("#search").on("click", function () {
+        reloadData();
+    });
+
+
+    // 预约买票弹窗
+    function appoint(id) {
+        $('#pay').attr('data-ticket-id',id);
+        $('#buyModal').modal('show')
+    }
+
+    //买票
+    $("#pay").click(function () {
+
+        var ticketId = $('#pay').attr('data-ticket-id');
+        var ticketNum = $('#ticketNum').val();
+        if (ticketNum == "" || ticketNum == null) {
+            toastr.warning('请输入门票购买数量');
+            $("#ticketNum").focus();
+            return;
+        }
+        swal({
+            title: "确认购买门票吗?",
+            text: "门票购买之后也可以退票哦！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                var data = {};
+                data.ticketId = ticketId;
+                data.ticketNum = ticketNum;
+                $.ajax({
+                    type: "POST",
+                    async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+                    url: "/order",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        //后台返回的需要显示的信息列表
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            window.location.href = '/order/list'
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+
+    });
+
+
+    // 删除
+    function del(id) {
+
+        swal({
+            title: "确认删除此记录吗?",
+            text: "一旦删除，记录无法恢复！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                $.ajax({
+                    type: "DELETE",
+                    async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+                    url: "/ticket/" + id,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        //后台返回的需要显示的信息列表
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            reloadData();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    // 刷新数据
+    function reloadData() {
+        //重新加载表格数据
+        $('#dataTable').DataTable().ajax.reload();
+    }
+
+    // 获取所有项目
+    function getCategory() {
+        $.get("/category/all", function (result) {
+            $("#categoryId").empty();
+            $("#categoryId").append("<option value=''>--请选择游乐项目--</option>");//新增
+            $.each(result.data, function (index, item) {
+                $("#categoryId").append("<option value='" + item.id + "'>" + item.categoryName + "</option>");
+            });
+        });
+    }
+
+
+</script>
+</body>
+</html>

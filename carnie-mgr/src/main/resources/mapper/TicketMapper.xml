@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoniucr.mapper.TicketMapper">
+    <resultMap id="BaseResultMap" type="com.xiaoniucr.entity.Ticket">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="category_id" jdbcType="INTEGER" property="categoryId"/>
+        <result column="ticket_date" jdbcType="DATE" property="ticketDate"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="price" jdbcType="DOUBLE" property="price"/>
+        <result column="total_num" jdbcType="INTEGER" property="totalNum"/>
+        <result column="rest_num" jdbcType="INTEGER" property="restNum"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        , category_id, ticket_date, type, price, total_num, rest_num, create_time, update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_ticket
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_ticket
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.xiaoniucr.entity.Ticket">
+        insert into t_ticket (id, category_id, ticket_date,
+                              type, price, total_num,
+                              rest_num, create_time, update_time)
+        values (#{id,jdbcType=INTEGER}, #{categoryId,jdbcType=INTEGER}, #{ticketDate,jdbcType=DATE},
+                #{type,jdbcType=INTEGER}, #{price,jdbcType=DOUBLE}, #{totalNum,jdbcType=INTEGER},
+                #{restNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.xiaoniucr.entity.Ticket">
+        insert into t_ticket
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="categoryId != null">
+                category_id,
+            </if>
+            <if test="ticketDate != null">
+                ticket_date,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="price != null">
+                price,
+            </if>
+            <if test="totalNum != null">
+                total_num,
+            </if>
+            <if test="restNum != null">
+                rest_num,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="categoryId != null">
+                #{categoryId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketDate != null">
+                #{ticketDate,jdbcType=DATE},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                #{price,jdbcType=DOUBLE},
+            </if>
+            <if test="totalNum != null">
+                #{totalNum,jdbcType=INTEGER},
+            </if>
+            <if test="restNum != null">
+                #{restNum,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.xiaoniucr.entity.Ticket">
+        update t_ticket
+        <set>
+            <if test="categoryId != null">
+                category_id = #{categoryId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketDate != null">
+                ticket_date = #{ticketDate,jdbcType=DATE},
+            </if>
+            <if test="type != null">
+                type = #{type,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                price = #{price,jdbcType=DOUBLE},
+            </if>
+            <if test="totalNum != null">
+                total_num = #{totalNum,jdbcType=INTEGER},
+            </if>
+            <if test="restNum != null">
+                rest_num = #{restNum,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.xiaoniucr.entity.Ticket">
+        update t_ticket
+        set category_id = #{categoryId,jdbcType=INTEGER},
+            ticket_date = #{ticketDate,jdbcType=DATE},
+            type        = #{type,jdbcType=INTEGER},
+            price       = #{price,jdbcType=DOUBLE},
+            total_num   = #{totalNum,jdbcType=INTEGER},
+            rest_num    = #{restNum,jdbcType=INTEGER},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="findList" resultType="com.xiaoniucr.entity.Ticket">
+        select a.*,
+        b.category_name
+        from t_ticket a
+        inner join t_category b on a.category_id = b.id
+        <where>
+            <if test="categoryId != null and categoryId != ''">
+                and a.category_id = #{categoryId}
+            </if>
+            <if test="ticketDate != null and ticketDate !=''">
+                and a.ticket_date = #{ticketDate}
+            </if>
+        </where>
+        order by a.create_time desc
+        limit #{start},#{limit};
+    </select>
+
+    <select id="findTotal" resultType="java.lang.Integer">
+        select count(a.id)
+        from t_ticket a
+        inner join t_category b on a.category_id = b.id
+        <where>
+            <if test="categoryId != null and categoryId != ''">
+                and a.category_id = #{categoryId}
+            </if>
+            <if test="ticketDate != null and ticketDate !=''">
+                and a.ticket_date = #{ticketDate}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectExist" resultType="com.xiaoniucr.entity.Ticket">
+        select * from t_ticket where category_id = #{categoryId} and ticket_date = #{ticketDate} and type = #{type}
+    </select>
+
+</mapper>

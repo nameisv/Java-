@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>留言信息</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">留言管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">留言信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="action-box">
+                    <div class="search-box">
+                        <form class="form-inline" role="form">
+                            <div class="form-group">
+                                <label class="sr-only" for="nickname">留言人</label>
+                                <input type="text" class="form-control" id="nickname" placeholder="请输入留言人"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label class="sr-only" for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入留言主题"
+                                       autocomplete="off">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="search">查询</button>
+                        </form>
+                    </div>
+                </div>
+                <table id="dataTable" class="table table-hover table-bordered"></table>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    //初始化Datatable
+    var datatable = $('#dataTable').DataTable({
+        info: true,
+        scrollX: true,
+        scrollY: "400px",
+        scrollCollapse: true,
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,
+        searching: false,
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pagingType: "full_numbers",
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100],
+        ajax: {
+            "url": "/feedback/list",
+            "type": "POST",
+            "data": function (d) {
+                d.nickname = $('#nickname').val();
+                d.title = $('#title').val();
+            }
+        },
+        fixedColumns: {
+            leftColumns: -1,
+            rightColumns: 1
+        },
+        columns: [
+            {title: "留言人", data: 'nickname', width: '100px'},
+            {
+                title: "留言类型",
+                data: 'categoryId',
+                width: '120px',
+                render: function (data, type, row, meta) {
+                    if (data == null) {
+                        return '<span class="badge badge-pill badge-primary">全局留言</span>';
+                    }
+                    return '<span class="badge badge-pill badge-info">项目留言</span>';
+                }
+            },
+            {
+                title: "项目名称",
+                data: 'categoryName',
+                width: '150px',
+                "defaultContent": '<span class="text-muted">--</span>'
+            },
+            {title: "主题", data: 'title', width: '200px'},
+            {
+                title: "状态",
+                data: 'status',
+                width: '100px',
+                render: function (data, type, row, meta) {
+                    if (data == 0) {
+                        return '<span class="badge badge-pill badge-warning">待回复</span>';
+                    }
+                    return '<span class="badge badge-pill badge-success">已回复</span>';
+                }
+            },
+            {title: "回复", data: 'reply', width: '350px', "defaultContent": '--'},
+            {title: "时间", data: 'createTime', width: '150px'},
+            {
+                title: "操作",
+                data: null,
+                width: '100px',
+                render: function (data, type, row, meta) {
+                    var btnHtml = '';
+                    btnHtml += '<div class="btn-group" role="group">';
+                    btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/feedback/reply?id=' + row.id + '"><i class="fa fa-comments-o"> 回复</i></a>';
+                    btnHtml += '</div>';
+                    return btnHtml;
+                }
+            }
+
+        ],
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    //添加查询事件
+    $("#search").on("click", function () {
+        $('#dataTable').DataTable().ajax.reload();
+    });
+
+</script>
+</body>
+</html>

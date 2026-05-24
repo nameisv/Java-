@@ -1,0 +1,173 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>项目添加</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">项目管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">项目添加</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form id="form">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="categoryName">项目名称</label>
+                                <input type="text" class="form-control" id="categoryName" name="categoryName"
+                                       placeholder="请输入项目名称"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="location">项目地点</label>
+                                <input type="text" class="form-control" id="location" name="location"
+                                       placeholder="请输入项目地点"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="beginTime">开始时间</label>
+                                <input type="text" class="form-control timePick" id="beginTime" name="beginTime"
+                                       placeholder="请选择开放时间"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="endTime">关闭时间</label>
+                                <input type="text" class="form-control timePick" id="endTime" name="endTime"
+                                       placeholder="请选择关闭时间"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                                <label for="location">项目封面</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="cover" placeholder="请选择文件" readonly>
+                                    <div class="input-group-prepend">
+                                        <input type="file" id="file" name="file" style="display: none">
+                                        <button type="button" class="btn btn-primary" id="upload"><i class="fa fa-file">
+                                            浏览文件</i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="detail">项目介绍</label>
+                                <textarea class="form-control" id="detail" name="detail" rows="5" placeholder="请输入项目介绍"
+                                          autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    $('.timePick').clockpicker({
+        autoclose: true
+    });
+
+    //绑定保存事件
+    $("#upload").click(function () {
+        $('#file').click();
+    });
+
+    $("#file").change(function () {
+        console.log($(this).val())
+        $('#cover').val($(this).val());
+    });
+
+    //绑定保存事件
+    $("#save").click(function () {
+
+        var form = new FormData(document.getElementById("form"));
+
+        var categoryName = $('#categoryName').val();
+        var location = $('#location').val();
+        var beginTime = $('#beginTime').val();
+        var endTime = $('#endTime').val();
+        var file = $('#file').get(0).files[0];
+        var detail = $('#detail').val();
+
+        if (categoryName == "" || categoryName == null) {
+            toastr.warning('请输入项目名称');
+            $("#categoryName").focus();
+            return;
+        }
+        if (location == "" || location == null) {
+            toastr.warning('请输入项目地点');
+            $("#location").focus();
+            return;
+        }
+        if (beginTime == "" || beginTime == null) {
+            toastr.warning('请输入项目开放时间');
+            $("#beginTime").focus();
+            return;
+        }
+        if (endTime == "" || endTime == null) {
+            toastr.warning('请输入项目结束时间');
+            $("#endTime").focus();
+            return;
+        }
+        if (!file) {
+            alert("请选择封面图片");
+            return;
+        }
+        if (detail == "" || detail == null) {
+            toastr.warning('请输入项目介绍');
+            $("#detail").focus();
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/category",
+            processData: false,
+            contentType: false,
+            data: form,
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/category/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+
+</script>
+</body>
+</html>

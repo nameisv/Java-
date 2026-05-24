@@ -1,0 +1,179 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>公告信息</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">公告管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">公告信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="action-box">
+                    <div class="search-box">
+                        <form class="form-inline" role="form">
+                            <div class="form-group">
+                                <label class="sr-only" for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入公告主题" autocomplete="off">
+                            </div>
+                            <button type="button" class="btn btn-primary" id="search">查询</button>
+                        </form>
+                    </div>
+                    <div class="operator-box">
+                        <a type="button" class="btn btn-primary" href="/notice/add" th:if="${session.user.role == 0 || session.user.role == 3}">添加</a>
+                    </div>
+                </div>
+                <table id="dataTable" class="table table-hover table-bordered"></table>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var role = '[[${session.user.role}]]';
+    //初始化Datatable
+    var datatable = $('#dataTable').DataTable({
+        info: true,             // 控制是否显示表格左下角的信息
+        scrollY: "400px",       // 设置垂直滚动
+        scrollCollapse: true,   // 当显示更少的记录时，是否允许表格减少高度
+        autoWidth: true,        // 控制Datatables是否自适应宽度
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,        // 是否允许Datatables开启排序
+        searching: false,       // 是否允许Datatables开启本地搜索
+        serverSide: true,       // 是否开启服务器模式
+        processing: true,       // 是否显示处理状态(排序的时候，数据很多耗费时间长的话，也会显示这个)
+        paging: true,           // 是否开启本地分页
+        pagingType: "full_numbers", // 分页按钮显示选项
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100], // 定义在每页显示记录数的select中显示的选项
+        ajax: {
+            "url": "/notice/list",
+            "type": "POST",
+            "data": function (d) {
+                d.title = $('#title').val();
+            }
+        },
+        columns: [
+            {title: "主题", data: 'title'},
+            {title: "时间", data: 'createTime'},
+            {
+                title: "操作",
+                data: 'action',
+                width: (role == 0 || role == 3) ? '120px' : '60px',
+                render: function (data, type, row, meta) {
+                    var btnHtml = '';
+                    btnHtml += '<div class="btn-group" role="group" aria-label="Basic example">';
+                    if (row.id) {
+                        if(role == 0 || role == 3){
+                            btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/notice/edit?id=' + row.id + '"><i class="fa fa-edit"> 编辑</i></a>';
+                            btnHtml += ' <button type="button" class="btn btn-danger btn-sm" onclick="del(' + row.id + ')"><i class="fa fa-trash-o"> 删除</i></button>';
+                        }
+                        if(role != 0 && role != 3){
+                            btnHtml += ' <a type="button" class="btn btn-primary btn-sm" href="/notice/info?id=' + row.id + '"><i class="fa fa-eye"> 详情</i></a>';
+                        }
+                    } else {
+                        btnHtml += ' <button type="button" class="btn btn-primary btn-sm" disabled><i class="fa fa-eye"> 详情</i></button>';
+                    }
+                    btnHtml += '</div>';
+                    return btnHtml;
+                }
+            }
+
+        ],
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    //添加查询事件
+    $("#search").on("click", function () {
+        reloadData();
+    });
+
+    // 删除
+    function del(id) {
+        swal({
+            title: "确认删除此记录吗?",
+            text: "一旦删除，记录无法恢复！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                $.ajax({
+                    type: "DELETE",
+                    async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+                    url: "/notice/" + id,
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data) {
+                        //后台返回的需要显示的信息列表
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            reloadData();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    // 刷新数据
+    function reloadData() {
+        //重新加载表格数据
+        $('#dataTable').DataTable().ajax.reload();
+    }
+
+
+
+</script>
+</body>
+</html>

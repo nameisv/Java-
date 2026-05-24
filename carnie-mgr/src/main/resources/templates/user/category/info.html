@@ -1,0 +1,307 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>项目详情</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="/category/view">项目列表</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${category.categoryName}"></li>
+        </ol>
+    </nav>
+</div>
+<!-- end::page header -->
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <img th:src="${category.cover}" class="card-img-top" alt="...">
+                    <div class="card-body text-center">
+                        <h5 th:text="${category.categoryName}"></h5>
+                        <p class="text-muted"><i class="fa fa-location-arrow" th:text="${' '+category.location}"></i></p>
+                        <p th:text="${category.detail}"></p>
+                        <a href="javascript:void(0)" class="btn btn-outline-primary">
+                            <i class="fa fa-clock-o m-r-5" th:text="${' ' + category.beginTime + ' - ' + category.endTime}"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-8">
+
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title m-b-15">门票信息</h6>
+
+                        <!-- 添加日期选择器 -->
+                        <div class="form-group row m-b-15">
+                            <label class="col-sm-2 col-form-label">选择日期：</label>
+                            <div class="col-sm-10">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary" id="todayBtn" onclick="selectDate('today')">
+                                        今天 (<span id="todayDate"></span>)
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary" id="tomorrowBtn" onclick="selectDate('tomorrow')">
+                                        明天 (<span id="tomorrowDate"></span>)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table id="dataTable" class="table table-striped"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</main>
+<!-- end::main content -->
+
+<!-- 购买门票 -->
+<div class="modal fade" id="buyModal" tabindex="-1" role="dialog"
+     aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">购买门票</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="ticketNum" class="col-form-label">购买数量</label>
+                        <input type="text" class="form-control" id="ticketNum" placeholder="请输入门票数量">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消
+                </button>
+                <button type="button" class="btn btn-primary" data-ticket-id="" id="pay" >购买</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var role = '[[${session.user.role}]]';
+    var categoryId = getQueryVariable("id");
+    var selectedDate = ''; // 当前选择的日期
+
+    // 初始化日期显示和选择
+    $(document).ready(function() {
+        var today = new Date();
+        var tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // 格式化日期为 yyyy-MM-dd
+        var todayStr = formatDate(today);
+        var tomorrowStr = formatDate(tomorrow);
+
+        $('#todayDate').text(todayStr);
+        $('#tomorrowDate').text(tomorrowStr);
+
+        // 默认选择今天
+        selectDate('today');
+    });
+
+    // 格式化日期函数
+    function formatDate(date) {
+        var year = date.getFullYear();
+        var month = (date.getMonth() + 1).toString().padStart(2, '0');
+        var day = date.getDate().toString().padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    // 选择日期函数
+    function selectDate(type) {
+        var today = new Date();
+        var targetDate;
+
+        if (type === 'today') {
+            targetDate = today;
+            $('#todayBtn').removeClass('btn-outline-primary').addClass('btn-primary');
+            $('#tomorrowBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        } else {
+            targetDate = new Date(today);
+            targetDate.setDate(targetDate.getDate() + 1);
+            $('#tomorrowBtn').removeClass('btn-outline-primary').addClass('btn-primary');
+            $('#todayBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        }
+
+        selectedDate = formatDate(targetDate);
+
+        // 重新加载表格数据
+        $('#dataTable').DataTable().ajax.reload();
+    }
+
+    //初始化Datatable
+    var datatable = $('#dataTable').DataTable({
+        info: true,
+        scrollY: "400px",
+        scrollCollapse: true,
+        dom: "<'toolbar'>" +
+            "<'row'<'col-sm-12'tr>>" +
+            "<'row'<'col-sm-5'li><'col-sm-7'p>>",
+        ordering: false,
+        searching: false,
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pagingType: "full_numbers",
+        pageLength: 10,
+        aLengthMenu: [10, 20, 50, 100],
+        ajax: {
+            "url": "/ticket/list",
+            "type": "POST",
+            "data": function (d) {
+                d.categoryId = categoryId;
+                d.ticketDate = selectedDate; // 传递选择的日期
+            }
+        },
+        columns: [
+            {title: "日期", data: 'ticketDate', width: '100px'},
+            {
+                title: "类型",
+                data: 'type',
+                width: '50px',
+                render: function (data, type, row, meta) {
+                    if (data == 0) {
+                        return '<span class="badge badge-pill badge-primary">成人</span>';
+                    }
+                    return '<span class="badge badge-pill badge-info">儿童</span>';
+                }
+            },
+            {title: "价格", data: 'price', width: '100px'},
+            {title: "门票总数", data: 'totalNum', width: '100px'},
+            {title: "门票剩余", data: 'restNum', width: '100px'},
+            {
+                title: "操作",
+                data: null,
+                width: '80px',
+                render: function (data, type, row, meta) {
+                    if(row.restNum > 0) {
+                        return '<div class="btn-group" role="group" aria-label="Basic example">' +
+                            '        <button type="button" class="btn btn-primary btn-sm" onclick="appoint(' + row.id + ')"><i class="fa fa-check-circle-o"> 预约</i></button>' +
+                            '   </div>';
+                    } else {
+                        return '<span class="badge badge-danger">已售罄</span>';
+                    }
+                }
+            }
+
+        ],
+        language: {
+            "sProcessing": "处理中...",
+            "sLengthMenu": "显示 _MENU_ 条 / 页",
+            "sZeroRecords": "没有匹配结果",
+            "sInfo": "，共 _TOTAL_ 条",
+            "sInfoEmpty": "，共 0 条",
+            "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+            "sInfoPostFix": "",
+            "sSearch": "搜索:",
+            "sUrl": "",
+            "sEmptyTable": "表中数据为空",
+            "sLoadingRecords": "载入中...",
+            "sInfoThousands": ",",
+            "oPaginate": {
+                "sFirst": "首页",
+                "sPrevious": "上页",
+                "sNext": "下页",
+                "sLast": "末页"
+            },
+            "oAria": {
+                "sSortAscending": ":以升序排列此列",
+                "sSortDescending": ":以降序排列此列"
+            }
+        },
+    });
+
+    // 预约买票弹窗
+    function appoint(id) {
+        $('#pay').attr('data-ticket-id',id);
+        $('#ticketNum').val(''); // 清空输入框
+        $('#buyModal').modal('show')
+    }
+
+    //买票
+    $("#pay").click(function () {
+
+        var ticketId = $('#pay').attr('data-ticket-id');
+        var ticketNum = $('#ticketNum').val();
+        if (ticketNum == "" || ticketNum == null) {
+            toastr.warning('请输入门票购买数量');
+            $("#ticketNum").focus();
+            return;
+        }
+
+        // 验证是否为正整数
+        if (!/^\d+$/.test(ticketNum) || parseInt(ticketNum) <= 0) {
+            toastr.warning('请输入有效的购买数量');
+            $("#ticketNum").focus();
+            return;
+        }
+
+        swal({
+            title: "确认购买门票吗?",
+            text: "门票购买之后也可以退票哦！",
+            icon: "warning",
+            buttons: ["取消", "确定"],
+            dangerMode: true,
+        }).then((ok) => {
+            if (ok) {
+                var data = {};
+                data.ticketId = ticketId;
+                data.ticketNum = parseInt(ticketNum);
+                $.ajax({
+                    type: "POST",
+                    async: false,
+                    url: "/order",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: JSON.stringify(data),
+                    success: function (data) {
+                        if (data.code == 200) {
+                            toastr.success(data.msg);
+                            $('#buyModal').modal('hide');
+                            // 刷新表格显示剩余票数
+                            $('#dataTable').DataTable().ajax.reload();
+                        } else {
+                            toastr.error(data.msg);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('购买失败，请稍后重试');
+                    }
+                })
+            }
+        });
+
+    });
+
+</script>
+
+
+</body>
+</html>

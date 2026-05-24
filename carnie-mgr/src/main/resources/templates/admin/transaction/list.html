@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>交易流水管理</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">财务管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">交易流水</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form class="form-inline">
+                    <div class="form-group mr-2">
+                        <label>交易类型：</label>
+                        <select class="form-control ml-2" id="type">
+                            <option value="">全部</option>
+                            <option value="1">充值</option>
+                            <option value="2">购票</option>
+                            <option value="3">退票</option>
+                        </select>
+                    </div>
+                    <div class="form-group mr-2">
+                        <label>开始时间：</label>
+                        <input type="text" class="form-control ml-2 datePick" id="beginTime" placeholder="开始时间">
+                    </div>
+                    <div class="form-group mr-2">
+                        <label>结束时间：</label>
+                        <input type="text" class="form-control ml-2 datePick" id="endTime" placeholder="结束时间">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="search">搜索</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-body">
+                <table id="dataTable" class="table table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>流水ID</th>
+                        <th>用户</th>
+                        <th>交易类型</th>
+                        <th>金额</th>
+                        <th>描述</th>
+                        <th>交易时间</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+<!-- end::main content -->
+
+<th:block th:include="comm/footer :: footer"></th:block>
+
+<script>
+    var dataTable;
+    
+    $(function () {
+        dataTable = $("#dataTable").DataTable({
+            "processing": true,
+            "serverSide": true,
+            "searching": false,
+            "ordering": false,
+            "ajax": {
+                "url": "/transaction/list",
+                "type": "POST",
+                "data": function (d) {
+                    d.type = $("#type").val();
+                    d.beginTime = $("#beginTime").val();
+                    d.endTime = $("#endTime").val();
+                }
+            },
+            "columns": [
+                {"data": "id"},
+                {"data": "nickname", "defaultContent": "未知用户"},
+                {
+                    "data": "type",
+                    "render": function (data) {
+                        if (data == 1) return '<span class="badge badge-success">充值</span>';
+                        if (data == 2) return '<span class="badge badge-info">购票</span>';
+                        if (data == 3) return '<span class="badge badge-warning">退票</span>';
+                        return '未知';
+                    }
+                },
+                {
+                    "data": "amount",
+                    "render": function (data) {
+                        return '¥' + (data || 0).toFixed(2);
+                    }
+                },
+                {"data": "description", "defaultContent": "-"},
+                {"data": "createTime"}
+            ],
+            "language": {
+                "url": "/vendors/datatables/Chinese.json"
+            }
+        });
+
+        // 搜索按钮
+        $("#search").click(function () {
+            dataTable.ajax.reload();
+        });
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoniucr.mapper.NoticeReadMapper">
+
+    <resultMap id="BaseResultMap" type="com.xiaoniucr.entity.NoticeRead">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="notice_id" jdbcType="INTEGER" property="noticeId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="is_received" jdbcType="TINYINT" property="isReceived"/>
+        <result column="is_completed" jdbcType="TINYINT" property="isCompleted"/>
+        <result column="is_acknowledged" jdbcType="TINYINT" property="isAcknowledged"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, notice_id, user_id, is_received, is_completed, is_acknowledged, create_time, update_time
+    </sql>
+
+    <insert id="insert" parameterType="com.xiaoniucr.entity.NoticeRead">
+        insert into t_notice_read (notice_id, user_id, is_received, is_completed,
+                                   is_acknowledged, create_time, update_time)
+        values (#{noticeId}, #{userId}, #{isReceived}, #{isCompleted},
+                #{isAcknowledged}, #{createTime}, #{updateTime})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.xiaoniucr.entity.NoticeRead">
+        insert into t_notice_read
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="noticeId != null">notice_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="isReceived != null">is_received,</if>
+            <if test="isCompleted != null">is_completed,</if>
+            <if test="isAcknowledged != null">is_acknowledged,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="noticeId != null">#{noticeId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="isReceived != null">#{isReceived},</if>
+            <if test="isCompleted != null">#{isCompleted},</if>
+            <if test="isAcknowledged != null">#{isAcknowledged},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <select id="selectByNoticeAndUser" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_notice_read
+        where notice_id = #{noticeId}
+        and user_id = #{userId}
+    </select>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.xiaoniucr.entity.NoticeRead">
+        update t_notice_read
+        <set>
+            <if test="isReceived != null">is_received = #{isReceived},</if>
+            <if test="isCompleted != null">is_completed = #{isCompleted},</if>
+            <if test="isAcknowledged != null">is_acknowledged = #{isAcknowledged},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="countUnreadNotices" resultType="java.lang.Integer">
+        select count(n.id)
+        from t_notice n
+        left join t_notice_read nr on n.id = nr.notice_id and nr.user_id = #{userId}
+        where
+        <choose>
+            <!-- 员工端(role=1): 统计未收到且未完成的公告 -->
+            <when test="role == 1">
+                (nr.id is null or (nr.is_received = 0 and nr.is_completed = 0))
+            </when>
+            <!-- 用户端(role=2): 统计未知晓的公告 -->
+            <when test="role == 2">
+                (nr.id is null or nr.is_acknowledged = 0)
+            </when>
+            <!-- 其他角色返回0 -->
+            <otherwise>
+                1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <insert id="markAsReceived">
+        insert into t_notice_read (notice_id, user_id, is_received, is_completed, is_acknowledged, create_time, update_time)
+        values (#{noticeId}, #{userId}, 1, 0, 0, now(), now())
+            on duplicate key update
+                                 is_received = 1,
+                                 update_time = now()
+    </insert>
+
+    <insert id="markAsCompleted">
+        insert into t_notice_read (notice_id, user_id, is_received, is_completed, is_acknowledged, create_time, update_time)
+        values (#{noticeId}, #{userId}, 0, 1, 0, now(), now())
+            on duplicate key update
+                                 is_completed = 1,
+                                 update_time = now()
+    </insert>
+
+    <insert id="markAsAcknowledged">
+        insert into t_notice_read (notice_id, user_id, is_received, is_completed, is_acknowledged, create_time, update_time)
+        values (#{noticeId}, #{userId}, 0, 0, 1, now(), now())
+            on duplicate key update
+                                 is_acknowledged = 1,
+                                 update_time = now()
+    </insert>
+
+</mapper>

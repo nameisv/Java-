@@ -1,0 +1,200 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>用户添加</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">用户管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">用户信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="username">账号</label>
+                                <input type="text" class="form-control" id="username" placeholder="请输入账号"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">密码</label>
+                                <input type="password" class="form-control" id="password" placeholder="请输入密码"
+                                       autocomplete="new-password">
+                            </div>
+                            <div class="form-group">
+                                <label for="nickname">姓名</label>
+                                <input type="text" class="form-control" id="nickname" placeholder="请输入姓名"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="idno">证件</label>
+                                <input type="text" class="form-control" id="idno" placeholder="请输入身份证号"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="nickname">性别</label>
+                                <div class="form-control">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sex" id="male" value="0"
+                                               checked>
+                                        <label class="form-check-label" for="male">男</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="sex" id="female" value="1">
+                                        <label class="form-check-label" for="female">女</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="username">生日</label>
+                                <input type="text" class="form-control datePick" id="birthday" placeholder="请选择生日"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="telephone">电话</label>
+                                <input type="text" class="form-control" id="telephone" placeholder="请输入电话"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">邮箱</label>
+                                <input type="text" class="form-control" id="email" placeholder="请输入邮箱"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="profession">职业</label>
+                                <input type="text" class="form-control" id="profession" placeholder="请输入职业"
+                                       autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">地址</label>
+                                <input type="text" class="form-control" id="address" placeholder="请输入地址"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var username = $('#username').val();
+        var password = $('#password').val();
+        var nickname = $('#nickname').val();
+        var idno = $('#idno').val();
+        var sex = $("input[name='sex']:checked").val(); //获取sex的值
+        var birthday = $('#birthday').val();
+        var telephone = $('#telephone').val();
+        var email = $('#email').val();
+        var profession = $('#profession').val();
+        var address = $('#address').val();
+        if (username == "" || username == null) {
+            toastr.warning('请输入账号');
+            $("#username").focus();
+            return;
+        }
+        if (password == "" || password == null) {
+            toastr.warning('请输入密码');
+            $("#password").focus();
+            return;
+        }
+        if (nickname == "" || nickname == null) {
+            toastr.warning('请输入姓名');
+            $("#nickname").focus();
+            return;
+        }
+        if (idno == "" || idno == null) {
+            toastr.warning('请输入身份证号');
+            $("#idno").focus();
+            return;
+        }
+        if (birthday == "" || birthday == null) {
+            toastr.warning('请选择生日');
+            $("#birthday").focus();
+            return;
+        }
+        if (telephone == "" || telephone == null) {
+            toastr.warning('请输入电话');
+            $("#telephone").focus();
+            return;
+        }
+        if (email == "" || email == null) {
+            toastr.warning('请输入邮箱');
+            $("#email").focus();
+            return;
+        }
+        if (profession == "" || profession == null) {
+            toastr.warning('请输入职业');
+            $("#profession").focus();
+            return;
+        }
+        if (address == "" || address == null) {
+            toastr.warning('请输入地址');
+            $("#address").focus();
+            return;
+        }
+        var data = {};
+        data.username = username;
+        data.password = password;
+        data.nickname = nickname;
+        data.idno = idno;
+        data.sex = sex;
+        data.birthday = birthday;
+        data.telephone = telephone;
+        data.email = email;
+        data.profession = profession;
+        data.address = address;
+        $.ajax({
+            type: "POST",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/user",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/user/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+</script>
+</body>
+</html>

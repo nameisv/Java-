@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>游乐园管理系统 - 登录</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body class="bg-white h-100-vh p-t-0">
+
+<!-- begin::page loader-->
+<div class="page-loader">
+    <div class="spinner-border"></div>
+    <span>Loading ...</span>
+</div>
+<!-- end::page loader -->
+
+<div class="p-b-50 d-block d-lg-none"></div>
+
+<div class="container h-100-vh">
+    <div class="row align-items-md-center h-100-vh">
+        <div class="col-lg-6 d-none d-lg-block">
+            <img class="img-fluid" src="/media/svg/login.svg" alt="...">
+        </div>
+        <div class="col-lg-4 offset-lg-1">
+            <h3>用户登录</h3>
+            <p>Sign in to continue.</p>
+            <form method="post">
+                <div class="form-group mb-4">
+                    <input type="text" class="form-control form-control-lg" id="username" placeholder="请输入账号" autocomplete="off">
+                </div>
+                <div class="form-group mb-4">
+                    <input type="password" class="form-control form-control-lg" id="password" placeholder="请输入密码" autocomplete="new-password">
+                </div>
+                <div class="form-group mb-4">
+                    <select class="form-control form-control-lg" id="role">
+                        <option value="">请选择身份</option>
+                        <option value="2">用户</option>
+                        <option value="1">员工</option>
+                        <option value="3">高级员工</option>
+                        <option value="4">维修员</option>
+                        <option value="0">管理员</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg btn-block btn-uppercase mb-4" id="login">登录</button>
+                <div class="text-center">
+                    没有账号? <a href="/register.html" class="text-primary">注册</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/vendors/bundle.js"></script>
+<script src="/js/app.js"></script>
+<script>
+
+    //绑定登录事件
+    $("#login").click(function () {
+        var username = $('#username').val();
+        var password = $('#password').val();
+        var role = $('#role').val();
+        if (username == "" || username == null) {
+            toastr.warning('请输入账号');
+            $("#username").focus();
+            return;
+        }
+        if (password == "" || password == null) {
+            toastr.warning('请输入密码');
+            $("#password").focus();
+            return;
+        }
+        if (role == "" || role == null) {
+            toastr.warning('请选择身份');
+            $("#role").focus();
+            return;
+        }
+        var data = {"username":username,"password":password,"role":role};
+        $.ajax({
+            type: "POST",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/login",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    setInterval(function(){
+                        window.location.href = "/index.html";
+                    },1000);
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+</script>
+
+</body>
+</html>

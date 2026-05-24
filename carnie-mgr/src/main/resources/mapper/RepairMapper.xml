@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoniucr.mapper.RepairMapper">
+    <resultMap id="BaseResultMap" type="com.xiaoniucr.entity.Repair">
+        <id column="id" jdbcType="INTEGER" property="id" />
+        <result column="title" jdbcType="VARCHAR" property="title" />
+        <result column="content" jdbcType="VARCHAR" property="content" />
+        <result column="area" jdbcType="VARCHAR" property="area" />
+        <result column="employee_id" jdbcType="INTEGER" property="employeeId" />
+        <result column="employee_name" jdbcType="VARCHAR" property="employeeName" />
+        <result column="repair_id" jdbcType="INTEGER" property="repairId" />
+        <result column="repair_name" jdbcType="VARCHAR" property="repairName" />
+        <result column="status" jdbcType="INTEGER" property="status" />
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+        <result column="receive_time" jdbcType="TIMESTAMP" property="receiveTime" />
+        <result column="complete_time" jdbcType="TIMESTAMP" property="completeTime" />
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, title, content, area, employee_id, employee_name, repair_id, repair_name, 
+        status, create_time, receive_time, complete_time, update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select 
+        <include refid="Base_Column_List" />
+        from t_repair
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from t_repair
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.xiaoniucr.entity.Repair">
+        insert into t_repair (id, title, content, area, employee_id, employee_name, 
+        repair_id, repair_name, status, create_time, receive_time, complete_time, update_time)
+        values (#{id,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, 
+        #{area,jdbcType=VARCHAR}, #{employeeId,jdbcType=INTEGER}, #{employeeName,jdbcType=VARCHAR}, 
+        #{repairId,jdbcType=INTEGER}, #{repairName,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+        #{createTime,jdbcType=TIMESTAMP}, #{receiveTime,jdbcType=TIMESTAMP}, 
+        #{completeTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.xiaoniucr.entity.Repair">
+        insert into t_repair
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="area != null">area,</if>
+            <if test="employeeId != null">employee_id,</if>
+            <if test="employeeName != null">employee_name,</if>
+            <if test="repairId != null">repair_id,</if>
+            <if test="repairName != null">repair_name,</if>
+            <if test="status != null">status,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="receiveTime != null">receive_time,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id,jdbcType=INTEGER},</if>
+            <if test="title != null">#{title,jdbcType=VARCHAR},</if>
+            <if test="content != null">#{content,jdbcType=VARCHAR},</if>
+            <if test="area != null">#{area,jdbcType=VARCHAR},</if>
+            <if test="employeeId != null">#{employeeId,jdbcType=INTEGER},</if>
+            <if test="employeeName != null">#{employeeName,jdbcType=VARCHAR},</if>
+            <if test="repairId != null">#{repairId,jdbcType=INTEGER},</if>
+            <if test="repairName != null">#{repairName,jdbcType=VARCHAR},</if>
+            <if test="status != null">#{status,jdbcType=INTEGER},</if>
+            <if test="createTime != null">#{createTime,jdbcType=TIMESTAMP},</if>
+            <if test="receiveTime != null">#{receiveTime,jdbcType=TIMESTAMP},</if>
+            <if test="completeTime != null">#{completeTime,jdbcType=TIMESTAMP},</if>
+            <if test="updateTime != null">#{updateTime,jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.xiaoniucr.entity.Repair">
+        update t_repair
+        <set>
+            <if test="title != null">title = #{title,jdbcType=VARCHAR},</if>
+            <if test="content != null">content = #{content,jdbcType=VARCHAR},</if>
+            <if test="area != null">area = #{area,jdbcType=VARCHAR},</if>
+            <if test="employeeId != null">employee_id = #{employeeId,jdbcType=INTEGER},</if>
+            <if test="employeeName != null">employee_name = #{employeeName,jdbcType=VARCHAR},</if>
+            <if test="repairId != null">repair_id = #{repairId,jdbcType=INTEGER},</if>
+            <if test="repairName != null">repair_name = #{repairName,jdbcType=VARCHAR},</if>
+            <if test="status != null">status = #{status,jdbcType=INTEGER},</if>
+            <if test="createTime != null">create_time = #{createTime,jdbcType=TIMESTAMP},</if>
+            <if test="receiveTime != null">receive_time = #{receiveTime,jdbcType=TIMESTAMP},</if>
+            <if test="completeTime != null">complete_time = #{completeTime,jdbcType=TIMESTAMP},</if>
+            <if test="updateTime != null">update_time = #{updateTime,jdbcType=TIMESTAMP},</if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.xiaoniucr.entity.Repair">
+        update t_repair
+        set title = #{title,jdbcType=VARCHAR},
+        content = #{content,jdbcType=VARCHAR},
+        area = #{area,jdbcType=VARCHAR},
+        employee_id = #{employeeId,jdbcType=INTEGER},
+        employee_name = #{employeeName,jdbcType=VARCHAR},
+        repair_id = #{repairId,jdbcType=INTEGER},
+        repair_name = #{repairName,jdbcType=VARCHAR},
+        status = #{status,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        receive_time = #{receiveTime,jdbcType=TIMESTAMP},
+        complete_time = #{completeTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="findList" parameterType="java.util.Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from t_repair
+        <where>
+            <if test="employeeId != null">
+                and employee_id = #{employeeId}
+            </if>
+            <if test="repairId != null">
+                and repair_id = #{repairId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+        </where>
+        order by create_time desc
+        <if test="start != null and limit != null">
+            limit #{start}, #{limit}
+        </if>
+    </select>
+
+    <select id="findTotal" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(*)
+        from t_repair
+        <where>
+            <if test="employeeId != null">
+                and employee_id = #{employeeId}
+            </if>
+            <if test="repairId != null">
+                and repair_id = #{repairId}
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="countUnreadRepairs" resultType="java.lang.Integer">
+        select count(*) from t_repair where status = 0
+    </select>
+
+    <select id="countAllRepairs" resultType="java.lang.Integer">
+        select count(*) from t_repair
+    </select>
+
+    <select id="countRepairsSince" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        select count(*) from t_repair 
+        where UNIX_TIMESTAMP(create_time) * 1000 &gt; #{timestamp}
+    </select>
+</mapper>

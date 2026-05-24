@@ -1,0 +1,107 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>游乐园管理系统 - 系统注册</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body class="bg-white h-100-vh p-t-0">
+
+<!-- begin::page loader-->
+<div class="page-loader">
+    <div class="spinner-border"></div>
+    <span>Loading ...</span>
+</div>
+<!-- end::page loader -->
+
+<div class="p-b-50 d-block d-lg-none"></div>
+
+<div class="container h-100-vh">
+    <div class="row align-items-md-center h-100-vh">
+        <div class="col-lg-6 d-none d-lg-block">
+            <img class="img-fluid" src="/media/svg/login.svg" alt="...">
+        </div>
+        <div class="col-lg-4 offset-lg-1">
+            <h3>用户注册</h3>
+            <p>Create a new account</p>
+            <form>
+                <div class="form-group mb-4">
+                    <input type="text" class="form-control form-control-lg" id="username" placeholder="请输入账号" autocomplete="off">
+                </div>
+                <div class="form-group mb-4">
+                    <input type="text" class="form-control form-control-lg" id="nickname" placeholder="请输入昵称" autocomplete="off">
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <input type="password" class="form-control form-control-lg" id="password" placeholder="请输入密码" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <input type="password" class="form-control form-control-lg" id="repeatPwd" placeholder="请输入确认密码" autocomplete="new-password">
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary btn-lg btn-block btn-uppercase mb-4" id="register">创建账号</button>
+                <p class="text-right">
+                    <a href="/login.html" class="text-underline">已有账号?</a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+
+<script src="/vendors/bundle.js"></script>
+<script src="/js/app.js"></script>
+<script type="text/javascript">
+    //绑定注册事件
+    $("#register").click(function () {
+        var username = $('#username').val();
+        var nickname = $('#nickname').val();
+        var password = $('#password').val();
+        var repeatPwd = $('#repeatPwd').val();
+        if (username == "" || username == null) {
+            toastr.warning('请输入账号');
+            $("#username").focus();
+            return;
+        }
+        if (nickname == "" || nickname == null) {
+            toastr.warning('请输入昵称');
+            $("#nickname").focus();
+            return;
+        }
+        if (password == "" || password == null) {
+            toastr.warning('请输入密码');
+            $("#password").focus();
+            return;
+        }
+        if (repeatPwd != password) {
+            toastr.warning('确认密码必须和密码一致');
+            $("#repeatPwd").focus();
+            return;
+        }
+        var data = {"username":username,"nickname":nickname,"password":password};
+        $.ajax({
+            type: "POST",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/register",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    setInterval(function(){
+                        window.location.href = "/login.html";
+                    },1000);
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+</script>
+</body>
+</html>

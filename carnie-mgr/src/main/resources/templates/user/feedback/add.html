@@ -1,0 +1,168 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>留言添加</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">留言管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">留言添加</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <!-- 留言类型选择 -->
+                            <div class="form-group">
+                                <label>留言类型</label>
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="feedbackType" id="typeGlobal" value="global" checked>
+                                        <label class="form-check-label" for="typeGlobal">
+                                            对游乐园整体留言
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="feedbackType" id="typeProject" value="project">
+                                        <label class="form-check-label" for="typeProject">
+                                            对具体项目留言
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 项目选择 (默认隐藏) -->
+                            <div class="form-group" id="projectSelect" style="display:none;">
+                                <label for="categoryId">选择项目</label>
+                                <select class="form-control" id="categoryId">
+                                    <option value="">请选择项目</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入留言主题" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="content">内容</label>
+                                <textarea class="form-control" id="content" rows="5" placeholder="请输入留言内容" autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                        <a href="/feedback/list" class="btn btn-secondary">返回</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    // 加载所有项目
+    $(document).ready(function() {
+        $.ajax({
+            type: "GET",
+            url: "/category/all",
+            dataType: "json",
+            success: function (result) {
+                if (result.code == 200 && result.data) {
+                    var options = '<option value="">请选择项目</option>';
+                    result.data.forEach(function(item) {
+                        options += '<option value="' + item.id + '">' + item.categoryName + '</option>';
+                    });
+                    $('#categoryId').html(options);
+                }
+            }
+        });
+    });
+
+    // 留言类型切换
+    $('input[name="feedbackType"]').change(function() {
+        if($(this).val() === 'project') {
+            $('#projectSelect').show();
+        } else {
+            $('#projectSelect').hide();
+            $('#categoryId').val('');
+        }
+    });
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var feedbackType = $('input[name="feedbackType"]:checked').val();
+        var categoryId = $('#categoryId').val();
+        var title = $('#title').val();
+        var content = $('#content').val();
+
+        if (title == "" || title == null) {
+            toastr.warning('请输入留言主题');
+            $("#title").focus();
+            return;
+        }
+        if (content == "" || content == null) {
+            toastr.warning('请输入留言内容');
+            $("#content").focus();
+            return;
+        }
+        if (feedbackType === 'project' && (categoryId == "" || categoryId == null)) {
+            toastr.warning('请选择要留言的项目');
+            $("#categoryId").focus();
+            return;
+        }
+
+        var data = {};
+        data.title = title;
+        data.content = content;
+        // 如果是项目留言，添加categoryId
+        if (feedbackType === 'project') {
+            data.categoryId = parseInt(categoryId);
+        }
+
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: "/feedback",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/feedback/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            },
+            error: function() {
+                toastr.error('提交失败，请稍后重试');
+            }
+        })
+    });
+
+</script>
+</body>
+</html>

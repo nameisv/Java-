@@ -1,0 +1,121 @@
+﻿<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>项目信息</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+    <!-- begin::jquery.pagination -->
+    <link rel="stylesheet" href="/vendors/pagination/pagination.css" type="text/css"/>
+    <script type="text/javascript" src="/vendors/pagination/jquery.pagination.js"></script>
+    <!-- begin::jquery.pagination -->
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">项目管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">项目信息</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <div class="category-list" id="dataBox"></div>
+                <!--存放分页页码-->
+                <ul style="text-align: center" class="box-paging"></ul>
+            </div>
+        </div>
+    </div>
+
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    init();// 初始化函数
+
+    /**
+     * 因为pagination插件初始化需要数据的总条目数作为参数 所以init函数作用就是查询总条目数
+     */
+    function init() {
+        $.ajax({
+            type: "POST",
+            data: {"page": 1, "length": 10},
+            url: "/category/list",
+            dataType: "json",
+            async: false, // 因为需要赋值,不可以异步
+            success: function (data) {
+                // 分页按钮属性定义
+                $(".box-paging").pagination({
+                    totalData: data.recordsTotal,//数据的总数量
+                    showData: 10,//每页显示几条数据
+                    coping: true,//首页和尾页
+                    jump: true,//是否可以跳转
+                    keepShowPN: true,
+                    mode: 'fixed', //分页模式，unfixed：不固定页码数量，fixed：固定页码数量
+                    homePage: '首页',
+                    endPage: '末页',
+                    prevContent: '上页',
+                    nextContent: '下页',
+                    callback: PageCallback, // 点击分页按钮的回调函数
+                }, PageCallback);
+            }
+        });
+    }
+
+    // 分页按钮点击事件
+    function PageCallback(page, jq) { // page表示当前页索引值，jq表示装载容器。
+        getPage(page.getCurrent());
+    }
+
+    // 去后台加载数据，并拼接显示出来
+    function getPage(page) { // 参数就是点击的那个分页的页数索引值
+        $.ajax({
+            type: "POST",
+            data: {"page": page, "length": 10},
+            url: "/category/list",
+            dataType: "json",
+            success: function (data) {
+                if (!data.data) {
+                    console.log("服务器错误");
+                    return
+                }
+                // 拼接html(这个部分根据自己的需求去实现)
+                var list = data.data;
+                var html = '';
+                for (var i = 0; i < list.length; i++) {
+                    var item = list[i];
+                    html += '<div class="card">';
+                    html += ' <div class="card-header">' + item.categoryName + '</div>';
+                    html += ' <div class="card-body">';
+                    html += '   <a href="/category/info?id=' + item.id + '">'
+                    html += '       <figure>';
+                    html += '           <img src="' + item.cover + '" class="card-img-top" alt="...">';
+                    html += '       </figure>';
+                    html += '   </a>';
+                    html += '   <p class="card-text">' + item.detail + '</p>';
+                    html += '   <a href="/category/info?id=' + item.id + '" class="btn btn-primary btm-sm">详情</a>'
+                    html += ' </div>';
+                    html += '</div>';
+                }
+                $('#dataBox').html(html)
+            }
+        });
+    }
+
+
+</script>
+</body>
+</html>

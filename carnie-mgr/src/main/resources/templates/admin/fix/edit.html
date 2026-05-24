@@ -1,0 +1,106 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>报修编辑</title>
+    <th:block th:include="comm/taglib :: taglib"></th:block>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">报修管理</a></li>
+            <li class="breadcrumb-item active" aria-current="page">报修编辑</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <!-- end::page header -->
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-9">
+                            <div class="form-group">
+                                <label for="title">主题</label>
+                                <input type="text" class="form-control" id="title" placeholder="请输入报修主题" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="content">内容</label>
+                                <textarea class="form-control" id="content" rows="3" placeholder="请输入报修内容" autocomplete="off"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</main>
+<!-- end::main content -->
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    var id = getQueryVariable('id');
+    //字段回填
+    $.get("/fix/"+id, function (result) {
+        var obj = result.data;
+        $('#title').val(obj.title);
+        $('#content').val(obj.content);
+        $('#save').attr('data-id', id);
+    });
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var id = $(this).attr('data-id');
+        var title = $('#title').val();
+        var content = $('#content').val();
+        if (title == "" || title == null) {
+            toastr.warning('请输入报修主题');
+            $("#title").focus();
+            return;
+        }
+        if (content == "" || content == null) {
+            toastr.warning('请输入报修内容');
+            return;
+        }
+        var data = {};
+        data.id = id;
+        data.title = title;
+        data.content = content;
+        $.ajax({
+            type: "PUT",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/fix",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                    window.location.href = '/fix/list'
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xiaoniucr.mapper.OrderMapper">
+    <resultMap id="BaseResultMap" type="com.xiaoniucr.entity.Order">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="ticket_id" jdbcType="INTEGER" property="ticketId"/>
+        <result column="ticket_num" jdbcType="INTEGER" property="ticketNum"/>
+        <result column="price" jdbcType="DOUBLE" property="price"/>
+        <result column="status" jdbcType="INTEGER" property="status"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id
+        , user_id, ticket_id, ticket_num, price, status, create_time, update_time
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_order
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.xiaoniucr.entity.Order">
+        insert into t_order (id, user_id, ticket_id, ticket_num, price,
+                             status, create_time, update_time)
+        values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{ticketId,jdbcType=INTEGER},
+                #{ticketNum,jdbcType=INTEGER}, #{price,jdbcType=DOUBLE}, #{status,jdbcType=INTEGER},
+                #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.xiaoniucr.entity.Order">
+        insert into t_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="ticketId != null">
+                ticket_id,
+            </if>
+            <if test="ticketNum != null">
+                ticket_num,
+            </if>
+            <if test="price != null">
+                price,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="userId != null">
+                #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketId != null">
+                #{ticketId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketNum != null">
+                #{ticketNum,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                #{price,jdbcType=DOUBLE},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.xiaoniucr.entity.Order">
+        update t_order
+        <set>
+            <if test="userId != null">
+                user_id = #{userId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketId != null">
+                ticket_id = #{ticketId,jdbcType=INTEGER},
+            </if>
+            <if test="ticketNum != null">
+                ticket_num = #{ticketNum,jdbcType=INTEGER},
+            </if>
+            <if test="price != null">
+                price = #{price,jdbcType=DOUBLE},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.xiaoniucr.entity.Order">
+        update t_order
+        set user_id     = #{userId,jdbcType=INTEGER},
+            ticket_id   = #{ticketId,jdbcType=INTEGER},
+            ticket_num  = #{ticketNum,jdbcType=INTEGER},
+            price       = #{price,jdbcType=DOUBLE},
+            status      = #{status,jdbcType=INTEGER},
+            create_time = #{createTime,jdbcType=TIMESTAMP},
+            update_time = #{updateTime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="findList" resultType="com.xiaoniucr.entity.Order">
+        select a.*,
+        b.nickname,
+        c.ticket_date,c.type,
+        d.category_name
+        from t_order a
+        inner join t_user b on a.user_id = b.id
+        inner join t_ticket c on a.ticket_id = c.id
+        inner join t_category d on c.category_id = d.id
+        <where>
+            <if test="userId != null and userId != ''">
+                and a.user_id = #{userId}
+            </if>
+            <if test="ticketId!= null and ticketId != ''">
+                and a.ticket_id = #{ticketId}
+            </if>
+            <if test="status != null and status != ''">
+                and a.status = #{status}
+            </if>
+            <if test="nickname != null and nickname !=''">
+                and b.nickname like concat('%',#{nickname},'%')
+            </if>
+            <if test="categoryId!= null and categoryId != ''">
+                and c.category_id = #{categoryId}
+            </if>
+            <if test="ticketDate != null and ticketDate != ''">
+                and c.ticket_date = #{ticketDate}
+            </if>
+        </where>
+        order by a.create_time desc
+        limit #{start},#{limit};
+    </select>
+
+    <select id="findTotal" resultType="java.lang.Integer">
+        select count(a.id)
+        from t_order a
+        inner join t_user b on a.user_id = b.id
+        inner join t_ticket c on a.ticket_id = c.id
+        inner join t_category d on c.category_id = d.id
+        <where>
+            <if test="userId != null and userId != ''">
+                and a.user_id = #{userId}
+            </if>
+            <if test="ticketId!= null and ticketId != ''">
+                and a.ticket_id = #{ticketId}
+            </if>
+            <if test="status != null and status != ''">
+                and a.status = #{status}
+            </if>
+            <if test="nickname != null and nickname !=''">
+                and b.nickname like concat('%',#{nickname},'%')
+            </if>
+            <if test="categoryId!= null and categoryId != ''">
+                and c.category_id = #{categoryId}
+            </if>
+            <if test="ticketDate != null and ticketDate != ''">
+                and c.ticket_date = #{ticketDate}
+            </if>
+        </where>
+    </select>
+
+
+    <select id="countAddNum" resultType="java.lang.Integer">
+        select count(id) from t_order
+        <where>
+            <if test="beginTime != null and beginTime !=''">
+                and create_time <![CDATA[ >= #{beginTime}]]>
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and create_time <![CDATA[ <= #{endTime}]]>
+            </if>
+        </where>
+    </select>
+
+    <select id="countAmount" resultType="java.lang.Double">
+        select sum(price) from t_order
+        <where>
+            <if test="beginTime != null and beginTime !=''">
+                and create_time <![CDATA[ >= #{beginTime}]]>
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and create_time <![CDATA[ <= #{endTime}]]>
+            </if>
+        </where>
+    </select>
+
+    <select id="countRefundAmount" resultType="java.lang.Double">
+        select sum(price) from t_order
+        <where>
+            and status = 2
+            <if test="beginTime != null and beginTime !=''">
+                and create_time <![CDATA[ >= #{beginTime}]]>
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and create_time <![CDATA[ <= #{endTime}]]>
+            </if>
+        </where>
+    </select>
+
+    <select id="countByStatus" resultType="java.lang.Integer">
+        select count(id) from t_order where status = #{status}
+    </select>
+</mapper>

@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <title>个人信息</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+
+<th:block th:include="comm/header :: header"></th:block>
+
+<!-- begin::page header -->
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item"><a href="#">系统设置</a></li>
+            <li class="breadcrumb-item active" aria-current="page">个人信息</li>
+        </ol>
+    </nav>
+</div>
+<!-- end::page header -->
+
+<!-- begin::main content -->
+<main class="main-content">
+
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <form>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="username">账号</label>
+                                <input type="text" class="form-control" id="username" placeholder="请输入账号" autocomplete="off" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="nickname">昵称</label>
+                                <input type="text" class="form-control" id="nickname" placeholder="请输入昵称" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary" id="save">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+
+</main>
+<!-- end::main content -->
+
+
+<th:block th:include="comm/footer :: footer"></th:block>
+<script>
+
+    //字段回填
+    $.get("/admin/info", function (result) {
+        var obj = result.data;
+        $('#username').val(obj.username);
+        $('#nickname').val(obj.nickname);
+        $('#save').attr('data-id', obj.id);
+    });
+
+    //绑定保存事件
+    $("#save").click(function () {
+        var id = $(this).attr('data-id');
+        var nickname = $('#nickname').val();
+        if (nickname == "" || nickname == null) {
+            toastr.warning('请输入昵称');
+            $("#nickname").focus();
+            return;
+        }
+        var data = {};
+        data.id = id;
+        data.nickname = nickname;
+        $.ajax({
+            type: "PUT",
+            async: false,//请求同步，必须执行完此ajax,才会去执行后面的js代码
+            url: "/admin",
+            dataType: "json",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                //后台返回的需要显示的信息列表
+                if (data.code == 200) {
+                    toastr.success(data.msg);
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+</script>
+</body>
+</html>

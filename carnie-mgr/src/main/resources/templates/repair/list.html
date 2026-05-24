@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>报修管理</title>
+    <div th:include="comm/taglib :: taglib"></div>
+</head>
+<body>
+
+<th:block th:include="comm/left :: left"></th:block>
+<th:block th:include="comm/header :: header"></th:block>
+
+<div class="page-header d-md-flex justify-content-between align-items-center">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb m-t-0">
+            <li class="breadcrumb-item"><a href="/index.html"><i class="fa fa-home"> 首页</i></a></li>
+            <li class="breadcrumb-item active" aria-current="page">报修管理</li>
+        </ol>
+    </nav>
+</div>
+
+<main class="main-content">
+    <div class="container-fluid">
+        <div class="card">
+            <div class="card-body">
+                <table id="dataTable" class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th>报修标题</th>
+                        <th>报修区域</th>
+                        <th>报修内容</th>
+                        <th>申请人</th>
+                        <th>状态</th>
+                        <th>申请时间</th>
+                        <th>受理时间</th>
+                        <th>完成时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:include="comm/footer :: footer"></th:block>
+
+<script>
+    let dataTable;
+    
+    $(document).ready(function () {
+        // 初始化数据表
+        dataTable = $('#dataTable').DataTable({
+            processing: true,
+            serverSide: true,
+            ordering: false,
+            searching: false,
+            paging: true,
+            pagingType: "full_numbers",
+            pageLength: 10,
+            info: true,
+            ajax: {
+                url: '/repair/list',
+                type: 'POST',
+                data: function (d) {
+                    return d;
+                }
+            },
+            columns: [
+                {data: 'title'},
+                {data: 'area'},
+                {data: 'content'},
+                {data: 'employeeName'},
+                {
+                    data: 'status',
+                    render: function (data, type, row) {
+                        if (data == 0) {
+                            return '<span class="badge badge-warning">待受理</span>';
+                        } else if (data == 1) {
+                            let text = '维修中';
+                            if (row.repairName) {
+                                text += ' (' + row.repairName + ')';
+                            }
+                            return '<span class="badge badge-info">' + text + '</span>';
+                        } else {
+                            return '<span class="badge badge-success">已完成</span>';
+                        }
+                    }
+                },
+                {data: 'createTime'},
+                {
+                    data: 'receiveTime',
+                    render: function (data) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'completeTime',
+                    render: function (data) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: 'id',
+                    render: function (data, type, row) {
+                        let html = '';
+                        if (row.status == 0) {
+                            html += '<button class="btn btn-sm btn-primary receive-btn" data-id="' + data + '">收到</button> ';
+                            html += '<button class="btn btn-sm btn-danger delete-btn" data-id="' + data + '">删除</button>';
+                        } else if (row.status == 1) {
+                            html += '<button class="btn btn-sm btn-success complete-btn" data-id="' + data + '">完成</button> ';
+                            html += '<button class="btn btn-sm btn-danger delete-btn" data-id="' + data + '">删除</button>';
+                        } else {
+                            html += '<button class="btn btn-sm btn-danger delete-btn" data-id="' + data + '">删除</button>';
+                        }
+                        return html;
+                    }
+                }
+            ],
+            language: {
+                url: '/vendors/dataTable/Chinese.json'
+            }
+        });
+    });
+
+    // 收到（受理）报修
+    $(document).on('click', '.receive-btn', function () {
+        let id = $(this).data('id');
+        if (confirm('确认受理该报修吗？')) {
+            $.ajax({
+                type: 'PUT',
+                url: '/repair/receive/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    if (result.code == 200) {
+                        toastr.success(result.msg);
+                        dataTable.ajax.reload();
+                        // 刷新小红点
+                        if (typeof updateRepairBadge === 'function') {
+                            updateRepairBadge();
+                        }
+                    } else {
+                        toastr.error(result.msg);
+                    }
+                }
+            });
+        }
+    });
+
+    // 完成报修
+    $(document).on('click', '.complete-btn', function () {
+        let id = $(this).data('id');
+        if (confirm('确认完成该报修吗？')) {
+            $.ajax({
+                type: 'PUT',
+                url: '/repair/complete/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    if (result.code == 200) {
+                        toastr.success(result.msg);
+                        dataTable.ajax.reload();
+                    } else {
+                        toastr.error(result.msg);
+                    }
+                }
+            });
+        }
+    });
+
+    // 删除报修
+    $(document).on('click', '.delete-btn', function () {
+        let id = $(this).data('id');
+        if (confirm('确定要删除这条报修记录吗？')) {
+            $.ajax({
+                type: 'DELETE',
+                url: '/repair/' + id,
+                dataType: 'json',
+                success: function (result) {
+                    if (result.code == 200) {
+                        toastr.success(result.msg);
+                        dataTable.ajax.reload();
+                    } else {
+                        toastr.error(result.msg);
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>
